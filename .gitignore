@@ -1,0 +1,22 @@
+# 编译输出目录
+build/
+
+# VS Code 配置
+.vscode/
+
+# 临时/备份文件
+*.swp
+*.swo
+*.orig
+*~
+
+# 可执行文件与库
+*.out
+*.exe
+*.so
+*.dll
+
+# CMake 临时文件
+CMakeCache.txt
+CMakeFiles/
+Makefile
