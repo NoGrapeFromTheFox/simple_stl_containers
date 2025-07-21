@@ -3,7 +3,7 @@
  * 构造函数要求：默认是一个空字符串、一个提供c风格字符串构造+二进制安全的构造函数（提供长度）
  * @note ①移动语义使用noexcept
  * ② 拷贝构造函数、拷贝运算符 传入参数 const string& other_str
- * ③ 移动运算符返回值为别名 string&
+ * ③ "operator=运算符"返回值为别名 string&
  * ④ 拷贝（赋值）、移动运算符需要进行自赋值检查
  */
 #ifndef SIMPLE_STL_CONTAINERS_STRING_H
@@ -65,7 +65,7 @@ public:
     }
 
     // 拷贝（赋值）运算符
-    inline string operator= (const string& other) {
+    inline string& operator= (const string& other) {
         if(this != &other){
             char* new_data = new char[other.capacity_ + 1];
             std::memcpy(new_data, other.data_, other.size_ + 1);

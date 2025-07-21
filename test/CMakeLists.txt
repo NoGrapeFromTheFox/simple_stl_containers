@@ -41,4 +41,7 @@ target_sources(test_threadpool_blockingqueue_m2m PRIVATE ${PROJECT_SOURCE_DIR}/s
 
 add_test_target(test_string_allfunc src/test_string_allfunc.cpp)
 target_sources(test_string_allfunc PRIVATE ${PROJECT_SOURCE_DIR}/src/containers/string.cpp)
-# ----------------------------- 可选：编译选项（继承根目录配置，无需重复写）-----------------------------  
+
+add_test_target(test_singletonpattern_thread_safety src/test_singletonpattern_thread_safety.cpp)
+target_link_libraries(test_singletonpattern_thread_safety PRIVATE pthread)
+target_sources(test_singletonpattern_thread_safety PRIVATE ${PROJECT_SOURCE_DIR}/src/tools/singletonpattern.cpp)

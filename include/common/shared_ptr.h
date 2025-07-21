@@ -47,14 +47,15 @@ public:
     }
 
     // 拷贝赋值运算符
-    shared_ptr<T> operator=(const shared_ptr<T>& other) {
+    shared_ptr<T>& operator=(const shared_ptr<T>& other) {
         // 内存地址不相等则释放当前资源，并拷贝成员变量
         if(this != &other) {
             release();
             ptr = other.ptr;
             ref_count = other.ref_count;
             if(ref_count) {
-                ref_count = ref_count->fetch_add(1, std::memory_order_relaxed);
+                // 只执行递增操作，不需要重新赋值ref_count指针
+                ref_count->fetch_add(1, std::memory_order_relaxed);
             }
         }
         return *this;
@@ -66,7 +67,7 @@ public:
         other.ref_count = nullptr;
     }
 
-    // 为什么"移动运算符"返回类型是 T& 对象别名：返回 “=”左操作数的别名，支持 a = b = c = d 链式操作，每一步生成并返回左操作数如c的别名，避免每一步都要生成c的副本
+    // 为什么"运算符"返回类型是 T& 对象别名：返回 “=”左操作数的别名，支持 a = b = c = d 链式操作，每一步生成并返回左操作数如c的别名，避免每一步都要生成c的副本
     shared_ptr<T>& operator= (shared_ptr<T>&& other) noexcept{
         if(this != &other){
             release();
