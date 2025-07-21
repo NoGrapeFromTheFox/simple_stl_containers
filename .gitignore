@@ -20,3 +20,7 @@ build/
 CMakeCache.txt
 CMakeFiles/
 Makefile
+
+# 忽略这两个特殊命名的文件
+eval "$(ssh-agent -s)"
+eval "$(ssh-agent -s)".pub
