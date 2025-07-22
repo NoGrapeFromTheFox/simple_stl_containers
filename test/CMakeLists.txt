@@ -18,7 +18,7 @@ function(add_test_target target_name src_file)
 endfunction()
 
 # 调用函数创建测试目标，只需传入目标名和源文件
-add_test_target(test_vector_reserve src/test_vector_reserve.cpp)
+add_test_target(test_vector_allfunc src/test_vector_allfunc.cpp)
 
 add_test_target(test_shared_ptr_thread_safety src/test_shared_ptr_thread_safety.cpp)
 

@@ -32,12 +32,13 @@ private:
     allocator_type alloc_;    // 分配器对象，管理内存
     pointer start_;            // 指针，指向数据起始位置
     pointer finish_;           // 指针，指向最后一个元素的下一个位置
+    pointer end_of_storage_;    // 指针，已分配内存的末尾位置
     size_type size_;          // 已存元素数量
     size_type capacity_;      // 总容量，可存储元素的最大数量
 
 public:
     // 构造函数: 仅初始化空容器
-    vector() : alloc_(), start_(nullptr),finish_(nullptr), size_(0), capacity_(0) {}
+    vector() : alloc_(), start_(nullptr),finish_(nullptr), end_of_storage_(nullptr), capacity_(0),size_(0) {}
 
     // 析构函数
     ~vector() {
@@ -54,14 +55,23 @@ public:
     // 获取总容量
     size_type capacity() const { return capacity_; }
 
-    // 获取最大容量（简单实现，返回分配器支持的最大值）
-    size_type max_size() const {
-        return alloc_.max_size();
+    size_type max_size() const { return alloc_.max_size(); } // 简单实现，返回分配器支持的最大值
+    
+    const pointer start() const { return start_; }
+        iterator end(){
+        return iterator(this->finish_);
     }
 
-    //获取数据起始位置
-    const pointer start() const {
-        return start_;
+    const_iterator end() const{
+        return const_iterator(this->finish_);
+    }
+
+    reference operator[](size_type n){
+        return *(start_ + n);
+    }
+
+    const_reference operator[](size_type n) const {
+        return *(start_ + n);
     }
 
     void reserve(size_type n) {
@@ -75,6 +85,7 @@ public:
         // 保存旧状态
         size_type old_size = size_;
         pointer old_data = start_;
+        pointer old_finish = finish_;
 
         // 分配新内存
         pointer new_data = alloc_.allocate(n);
@@ -94,6 +105,7 @@ public:
             // 异常安全：若转移过程中抛出异常，释放新内存并恢复旧状态
             alloc_.deallocate(new_data, n);
             start_ = old_data; // 恢复旧数据指针（仅在有旧数据时有效）
+            finish_ = old_finish;
             throw; // 重新抛出异常
         }
 
@@ -102,20 +114,47 @@ public:
 
         // 更新状态
         start_ = new_data;
+        finish_ = new_data + old_size;
         capacity_ = n;
+        end_of_storage_ = new_data + n;
 }
 
-    iterator end(){
-        return iterator(this->finish_);
+    // 为了避免写复杂的类模版限定符，简化成内联实现
+    template<typename... Args> 
+    reference emplace_back(Args&& ...args){
+        if(size_ >= capacity_){
+            size_type new_capacity = (capacity_ == 0)?1: capacity_ * 2;
+            reserve(new_capacity);
+        }
+        alloc_.construct(finish_, std::forward<Args>(args)...);
+        ++finish_;
+        ++size_;
+        return *(finish_ - 1); // 返回新插入元素的引用
     }
 
-    const_iterator end() const{
-        return const_iterator(this->finish_);
+    void push_back(const T& value){
+        emplace_back(value);
     }
 
-    // ...
+    void push_back(T&& value){
+        emplace_back(std::move(value));
+    }
+
+    void pop_back(){
+        if(size_ == 0){
+            throw std::out_of_range("vector::pop_back: container is empty!");
+        }
+        alloc_.destroy(finish_ - 1);
+        --finish_;
+        --size_;
+    }
 };
 
 } // namespace simple_stl
 
 #endif // SIMPLE_STL_CONTAINERS_VECTOR_H
+
+/**
+ * @brief 主要实现模拟动态数组的数据结构（三个指针+连续内存），简单实现插入、删除、扩容基础操作，
+ * 暂时没有实现： 移动、赋值 四大成员函数
+ */
