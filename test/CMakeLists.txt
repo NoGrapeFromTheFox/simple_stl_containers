@@ -45,3 +45,6 @@ target_sources(test_string_allfunc PRIVATE ${PROJECT_SOURCE_DIR}/src/containers/
 add_test_target(test_singletonpattern_thread_safety src/test_singletonpattern_thread_safety.cpp)
 target_link_libraries(test_singletonpattern_thread_safety PRIVATE pthread)
 target_sources(test_singletonpattern_thread_safety PRIVATE ${PROJECT_SOURCE_DIR}/src/tools/singletonpattern.cpp)
+
+add_test_target(test_lrucache src/test_lrucache.cpp)
+target_sources(test_lrucache PRIVATE ${PROJECT_SOURCE_DIR}/src/tools/lrucache.cpp)
