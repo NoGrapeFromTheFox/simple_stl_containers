@@ -49,6 +49,80 @@ public:
         }
     }
 
+    // 销毁容器中的元素，但不释放内存
+    void clear() noexcept{
+        while(finish_ != start_){
+            alloc_.destroy(--finish_);
+        }
+        size_ = 0;
+    }
+
+    // 拷贝构造函数: 避免浅拷贝
+    vector(const vector& other):alloc_(other.alloc_), 
+    start_(nullptr),finish_(nullptr), end_of_storage_(nullptr), 
+    capacity_(0),size_(0) {
+        reserve(other.capacity_); 
+        for( auto it = other.start_; it != other.finish_; ++it){
+            alloc_.construct(finish_++, *it); // 这里会触发元素类型(T)的拷贝构造函数,详见函数注释
+        }
+        size_ = other.size_;
+    }
+    
+    // 拷贝运算符重载
+    void swap(vector& other) noexcept{
+
+        std::swap(alloc_ , other.alloc_);
+        std::swap(start_ , other.start_);
+        std::swap(finish_ , other.finish_);           
+        std::swap(end_of_storage_ , other.end_of_storage_);    
+        std::swap(size_ , other.size_);          
+        std::swap(capacity_ , other.capacity_); 
+
+    }
+
+    vector& operator=(const vector& other) noexcept{
+        // 通过拷贝构造函数创建临时对象，
+        if(this != &other){
+            vector temp(other);
+            swap(temp); // 将当前对象成员值交换到temp中，由临时变量自动释放
+        }
+        return *this;
+    }
+
+    // 移动构造函数
+    vector( vector&& other):alloc_(std::move(other.alloc_)), 
+    start_(other.start_),finish_(other.finish_), end_of_storage_(other.end_of_storage_), 
+    capacity_(other.capacity_),size_(other.size_){
+        // 重置资源
+        other.start_ = nullptr;
+        other.finish_ = nullptr;           
+        other.end_of_storage_ = nullptr;    
+        other.size_ = 0;          
+        other.capacity_ = 0; 
+    }
+
+    // 移动运算符
+    vector& operator=(vector&& other) noexcept {
+        if(this != &other){
+            // 销毁原对象：销毁元素 + 释放内存
+            clear();
+            alloc_.deallocate(start_, capacity_);
+            alloc_ = std::move(other.alloc_);
+            start_ = other.start_;
+            finish_ = other.finish_;           
+            end_of_storage_ = other.end_of_storage_;    
+            size_ = other.size_;          
+            capacity_ = other.capacity_; 
+            // 重置other
+            other.start_ = nullptr;
+            other.finish_ = nullptr;           
+            other.end_of_storage_ = nullptr;    
+            other.size_ = 0;          
+            other.capacity_ = 0; 
+        }
+        return *this;
+    }
+
     // 获取当前元素数量
     size_type size() const { return size_; }
 
@@ -153,8 +227,3 @@ public:
 } // namespace simple_stl
 
 #endif // SIMPLE_STL_CONTAINERS_VECTOR_H
-
-/**
- * @brief 主要实现模拟动态数组的数据结构（三个指针+连续内存），简单实现插入、删除、扩容基础操作，
- * 暂时没有实现： 移动、赋值 四大成员函数
- */

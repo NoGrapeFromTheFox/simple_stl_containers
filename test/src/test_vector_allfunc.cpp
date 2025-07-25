@@ -102,3 +102,152 @@ TEST_CASE("vector with simple_stl::shared_ptr (complex type test)") {
 
     std::cout << "\n===== shared_ptr 测试结束 =====" << std::endl;
 }
+
+// 测试拷贝构造函数
+TEST_CASE("Copy Constructor", "[vector]") {
+    // 1. 测试空 vector 拷贝
+    SECTION("Copy empty vector") {
+        simple_stl::vector<int> src;
+        simple_stl::vector<int> dest(src); // 调用拷贝构造
+
+        REQUIRE(dest.size() == 0);
+        REQUIRE(dest.capacity() == 0);
+    }
+
+    // 2. 测试非空 vector 拷贝（深拷贝验证）
+    SECTION("Copy non-empty vector (deep copy)") {
+        simple_stl::vector<int> src;
+        src.push_back(10);
+        src.push_back(20);
+        src.push_back(30);
+        size_t src_cap = src.capacity();
+
+        simple_stl::vector<int> dest(src); // 拷贝构造
+
+        // 验证内容相同
+        REQUIRE(dest.size() == 3);
+        REQUIRE(dest[0] == 10);
+        REQUIRE(dest[1] == 20);
+        REQUIRE(dest[2] == 30);
+
+        // 验证深拷贝（修改 src 不影响 dest）
+        src[0] = 100;
+        REQUIRE(dest[0] == 10); // dest 未被修改
+
+        // 验证容量独立（不共享内存）
+        REQUIRE(dest.capacity() == src_cap); // 拷贝构造通常保留原容量
+    }
+}
+
+// 测试拷贝赋值运算符
+TEST_CASE("Copy Assignment Operator", "[vector]") {
+    // 1. 测试自我赋值（无异常）
+    SECTION("Self assignment") {
+        simple_stl::vector<int> vec;
+        vec.push_back(5);
+        vec = vec; // 自我赋值
+        REQUIRE(vec.size() == 1);
+        REQUIRE(vec[0] == 5);
+    }
+
+    // 2. 测试非空 vector 赋值（深拷贝验证）
+    SECTION("Assign non-empty vector (deep copy)") {
+        simple_stl::vector<int> src, dest;
+        src.push_back(1);
+        src.push_back(2);
+        dest.push_back(100); // dest 原有旧元素
+
+        dest = src; // 拷贝赋值
+
+        // 验证内容相同
+        REQUIRE(dest.size() == 2);
+        REQUIRE(dest[0] == 1);
+        REQUIRE(dest[1] == 2);
+
+        // 验证深拷贝（修改 src 不影响 dest）
+        src[0] = 10;
+        REQUIRE(dest[0] == 1);
+
+        // 验证旧元素已被销毁（若元素是类类型，可通过析构计数验证）
+    }
+
+    // 3. 测试赋值空 vector
+    SECTION("Assign empty vector") {
+        simple_stl::vector<int> src, dest;
+        dest.push_back(10);
+        dest = src; // 赋值空 vector
+        REQUIRE(dest.size() == 0);
+    }
+}
+
+// 测试移动构造函数
+TEST_CASE("Move Constructor", "[vector]") {
+    // 1. 移动非空 vector
+    SECTION("Move non-empty vector") {
+        simple_stl::vector<int> src;
+        src.push_back(10);
+        src.push_back(20);
+        size_t src_cap = src.capacity();
+
+        simple_stl::vector<int> dest(std::move(src)); // 移动构造
+
+        // 验证 dest 接管了 src 的内容
+        REQUIRE(dest.size() == 2);
+        REQUIRE(dest[0] == 10);
+        REQUIRE(dest[1] == 20);
+        REQUIRE(dest.capacity() == src_cap);
+
+        // 验证 src 处于有效但未指定状态（通常为空）
+        REQUIRE(src.size() == 0); // 移动后 src 应清空
+        // 不验证 src 的 capacity（可能保留或清零，标准未规定）
+    }
+
+    // 2. 移动空 vector
+    SECTION("Move empty vector") {
+        simple_stl::vector<int> src;
+        simple_stl::vector<int> dest(std::move(src));
+        REQUIRE(dest.size() == 0);
+        REQUIRE(src.size() == 0);
+    }
+}
+
+// 测试移动赋值运算符
+TEST_CASE("Move Assignment Operator", "[vector]") {
+    // 1. 自我移动（需保证安全，通常无操作）
+    SECTION("Self move") {
+        simple_stl::vector<int> vec;
+        vec.push_back(5);
+        vec = std::move(vec); // 自我移动
+        REQUIRE(vec.size() == 1); // 仍有效
+        REQUIRE(vec[0] == 5);
+    }
+
+    // 2. 移动非空 vector 到已有元素的 vector
+    SECTION("Move non-empty to existing vector") {
+        simple_stl::vector<int> src, dest;
+        src.push_back(30);
+        src.push_back(40);
+        size_t src_cap = src.capacity();
+        dest.push_back(100); // dest 原有元素
+
+        dest = std::move(src); // 移动赋值
+
+        // 验证 dest 接管内容
+        REQUIRE(dest.size() == 2);
+        REQUIRE(dest[0] == 30);
+        REQUIRE(dest[1] == 40);
+        REQUIRE(dest.capacity() == src_cap);
+
+        // 验证 src 为空
+        REQUIRE(src.size() == 0);
+    }
+
+    // 3. 移动空 vector 到非空 vector
+    SECTION("Move empty to non-empty vector") {
+        simple_stl::vector<int> src, dest;
+        dest.push_back(10);
+        dest = std::move(src); // 移动空 vector
+        REQUIRE(dest.size() == 0);
+        REQUIRE(src.size() == 0);
+    }
+}

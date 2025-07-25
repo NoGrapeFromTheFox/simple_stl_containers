@@ -21,7 +21,7 @@ public:
     typedef size_t    size_type;       // 无符号整数类型的别名（不同系统下可能不同 64 unsign long 32 unsign int）
     typedef ptrdiff_t difference_type; // 两个迭代器之间距离
 
-    // 允许动态获取其他类型的分配器 allocator<T>::rebind<U>::other 使waibudaima可以通过rebind<U>::other 访问到 allocator<U>
+    // 允许动态获取其他类型的分配器 allocator<T>::rebind<U>::other 使外部代码可以通过rebind<U>::other 访问到 allocator<U>
     template<typename U>
     struct rebind { typedef allocator<U> other; };
 
@@ -53,6 +53,7 @@ public:
     template<typename U, typename... Args>
     void construct(U* p, Args&&... args) {
         // 在指定地址分配对象 placement new 语法::new (address) Type(initializer_arguments);
+        // alloc_.construct(finish_++, *it); 这里*it是U类型的对象，并且*it会作为args传入U(*it)中, 触发元素U的拷贝构造函数
         ::new((void*)p) U(std::forward<Args>(args)...);
     }
 
@@ -87,3 +88,14 @@ bool operator!=(const allocator<T1>&, const allocator<T2>&) noexcept {
 
 } // namespace simple_stl
 #endif // SIMPLE_STL_ALLOCATOR_H
+
+/**
+ * @brief rebind接口通过定义别名，实现分配器类型的灵活转换；
+ * allocator接口 static_cast<Type>强制转换 + “:operator new”: 包装底层内存分配函数
+ * construct接口： 完美转发forword + palcement new在已分配内存上构造对象
+ * @note 区分 ::operator new、 new 、 malloc、 placement new
+ * ① ::operator new :c++底层内存分配函数工具，类内可以重载它实现自定义分配，失败时抛出异常。
+ * ② placement new: 在已有内存上构造对象，常用语内存复用场景
+ * ③ new： c++表达式本质是“::operator new”分配内存+“placement new”构造对象的组合，面向对象
+ * ④ malloc: c标准库函数，只分配内存，分配失败会返回nullptr，使用前要检查分配情况
+ */
