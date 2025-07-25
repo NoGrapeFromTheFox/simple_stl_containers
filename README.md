@@ -16,8 +16,8 @@ simple_stl_containers
 ├── src/              # 源码目录  
 │   ├── containers/    
 │   └── tools/          
-├── test/             # 测试目录  
-│   ├── src/          # 测试用例源码目录  
+├── test/                     # 测试目录  
+│   ├── src/                  # 测试用例源码目录  
 │   ├── catch_amalgamated.cpp # Catch2 单文件集成（测试框架）别删  
 │   ├── catch_amalgamated.hpp # Catch2 头文件  别删
 │   ├── CMakeLists.txt        # 测试模块 CMake 配置  
@@ -82,7 +82,14 @@ bash
 1、关于vector.h
 
 （1）总结：内存分配器（连续内存） + vector 本身三个指针
+
 （2）内存分配器Allocator: 主要接口rebind类型转换 + 对底层构建对象（placement new）、内存申请释放（::operator new）的二次封装
+
 （3）vector 最核心的扩容接口reserve，实际是利用placement new和std::move 将旧地址上的对象移动到新申请的内存上，并在分配失败的情况下回滚到原始状态，如指针对象的保存、先申请新内存、再释放旧内存
+
 （4）注意： 实现拷贝构造函数/拷贝赋值运算符的时候，要避免浅拷贝
-placement new语法： ::new(内存地址p) T(参数agrs) 调用T的拷贝构造函数
+
+placement new语法： ::new(内存地址p) T(参数agrs) 在已有内存上调用根据传入参数内容，调用对应的构造函数
+
+拷贝赋值运算符重写： 保证深拷贝，优雅实现方式有：使用拷贝构造函数创建temp对象 + 使用std::swap实现类内的swap函数（用临时对象管理原对象内容的释放）
+
