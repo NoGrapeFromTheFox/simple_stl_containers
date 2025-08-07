@@ -93,3 +93,17 @@ placement new语法： ::new(内存地址p) T(参数agrs) 在已有内存上调�
 
 拷贝赋值运算符重写： 保证深拷贝，优雅实现方式有：使用拷贝构造函数创建temp对象 + 使用std::swap实现类内的swap函数（用临时对象管理原对象内容的释放）
 
+2、关于线程池threadpool、blockingqueue_m2m 和 blockingqueue_o2m
+
+(1)总结： 使用阻塞队列解耦生产者和消费者
+（线程池为什么要引入阻塞队列？实现线程安全的任务传递，减少无效资源消耗）
+
+(2)注意：threadpool（单参构造explicit + lambda捕捉this保证线程处于工作状态）
+一个生产者与多个消费者模型：blockingqueue_o2m (出队消费接收方unique_lock + wait)
+多生产者与多消费者模型： blockingqueue_m2m(生产者、消费者各管理一个队列； 出队调用交换操作)
+
+（3）接收方主动阻塞（wait）当前线程，其他线程发出notify信号如果唤醒当前线程，则当前线程（等待条件变量的线程）要检查一个谓词，谓词为false则线程继续阻塞，避免虚假唤醒。
+
+3、关于计时器 TimerTask 和 Timer
+
+总结：TimerTask 封装带时间属性的回调任务，通过友元授权Timer调度执行，并利用智能指针管理自身生命周期；Timer 使用mutlimap管理定时任务，键值是任务执行时间

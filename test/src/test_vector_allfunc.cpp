@@ -1,6 +1,6 @@
 
 #define CATCH_CONFIG_MAIN  // 若单独编译测试文件，需定义此宏以生成 main 函数  
-#include <memory>          // 若 vector 中使用 allocator、pointer 等类型  
+#include <memory>          // pointer 
 #include "catch_amalgamated.hpp"  
 #include <containers/vector.h>  
 #include <common/utilities.h> 

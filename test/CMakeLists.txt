@@ -19,9 +19,9 @@ endfunction()
 
 # 调用函数创建测试目标，只需传入目标名和源文件
 add_test_target(test_vector_allfunc src/test_vector_allfunc.cpp)
+add_test_target(test_list_allfunc src/test_list_allfunc.cpp)
 
 add_test_target(test_shared_ptr_thread_safety src/test_shared_ptr_thread_safety.cpp)
-
 target_link_libraries(test_shared_ptr_thread_safety PRIVATE pthread)
 
 add_test_target(test_timer src/test_timer.cpp)
